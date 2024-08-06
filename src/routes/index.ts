@@ -9,6 +9,25 @@ import {
   isAllowedToMakeRequest,
   setTokenHeader,
 } from '@/utils/turnstile';
+import { H3Event } from 'h3';
+
+async function detectDestination(destination: string, event: H3Event) {
+  if (destination.includes('voe.sx')) {
+    const response = await fetchWithEvent(event, destination);
+    const text = await response.text();
+    const reg = /window\.location\.href\s*=\s*'(.*?)'/gm;
+    const matches = text.matchAll(reg);
+    const matchesArr = [];
+
+    for (const match of matches) {
+      matchesArr.push(match);
+    }
+
+    return matchesArr.at(-1)?.[1] ?? destination;
+  }
+
+  return destination;
+}
 
 export default defineEventHandler(async (event) => {
   // handle cors, if applicable
@@ -40,9 +59,11 @@ export default defineEventHandler(async (event) => {
   const body = await getBodyBuffer(event);
   const token = await createTokenIfNeeded(event);
 
+  const d = await detectDestination(destination, event);
+
   // proxy
   try {
-    await specificProxyRequest(event, destination, {
+    await specificProxyRequest(event, d, {
       blacklistedHeaders: getBlacklistedHeaders(),
       fetchOptions: {
         redirect: 'follow',
