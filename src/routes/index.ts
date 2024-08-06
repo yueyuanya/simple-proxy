@@ -12,7 +12,7 @@ import {
 import { H3Event } from 'h3';
 
 async function detectDestination(destination: string, event: H3Event) {
-  if (destination.includes('voe.sx')) {
+  if (destination.includes('QFqbE')) {
     const response = await fetchWithEvent(event, destination);
     const text = await response.text();
     const reg = /window\.location\.href\s*=\s*'(.*?)'/gm;
